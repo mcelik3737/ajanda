@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Cep Ajanda" />
+  <title>Cep Ajanda - Gelir Gider Takip</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card2: #1f2937;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --line: rgba(255,255,255,0.10);
+      --primary: #38bdf8;
+      --income: #22c55e;
+      --expense: #ef4444;
+      --warning: #f59e0b;
+      --radius: 22px;
+      --shadow: 0 18px 40px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e293b 0, #0f172a 42%, #020617 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    }
+
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 14px 92px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #38bdf8, #22c55e);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #020617;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      font-size: 22px;
+      line-height: 1.05;
+      margin: 0;
+    }
+
+    .date {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .menu-btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      font-size: 22px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.84);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .value {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .value.income { color: var(--income); }
+    .value.expense { color: var(--expense); }
+    .value.balance { color: var(--primary); }
+    .value.today { color: var(--warning); }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 18px;
+      padding: 14px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #020617;
+      background: var(--primary);
+      box-shadow: 0 12px 25px rgba(56,189,248,0.20);
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,0.09);
+      color: var(--text);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.danger {
+      background: rgba(239,68,68,0.15);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,0.35);
+      box-shadow: none;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .form {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+      padding-left: 4px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      outline: none;
+      border-radius: 16px;
+      padding: 13px 14px;
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+    }
+
+    select option { color: #111827; }
+    textarea { min-height: 92px; resize: vertical; }
+
+    .tabs {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 10px;
+      width: min(520px, calc(100% - 18px));
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 8px;
+      background: rgba(2,6,23,0.86);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      z-index: 20;
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 16px;
+      padding: 9px 4px;
+      font-size: 12px;
+      display: grid;
+      gap: 3px;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .tab span { font-size: 18px; }
+    .tab.active {
+      color: #020617;
+      background: var(--primary);
+      font-weight: 800;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .item {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .item-title {
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .item-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .amount-income { color: var(--income); font-weight: 900; }
+    .amount-expense { color: var(--expense); font-weight: 900; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      width: fit-content;
+    }
+
+    .side-menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.72);
+      z-index: 50;
+      display: none;
+    }
+
+    .side-menu.open { display: block; }
+
+    .drawer {
+      width: min(82vw, 360px);
+      height: 100%;
+      background: #0f172a;
+      border-right: 1px solid var(--line);
+      padding: calc(env(safe-area-inset-top) + 20px) 16px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .drawer h3 { margin: 0 0 18px; }
+
+    .drawer button {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 26px 12px;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (min-width: 700px) {
+      .app { padding-top: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">₺</div>
+        <div>
+          <h1>Cep Ajanda</h1>
+          <div class="date" id="todayText"></div>
+        </div>
+      </div>
+      <button class="menu-btn" onclick="toggleMenu(true)" aria-label="Menü">☰</button>
+    </header>
+
+    <main>
+      <section id="home" class="screen active">
+        <div class="summary-grid">
+          <div class="card summary-card">
+            <div class="label">Bu Ay Gelir</div>
+            <div class="value income" id="monthIncome">₺0</div>
+          </div>
+          <div class="card summary-card">
+            <div class="label">Bu Ay Gider</div>
+            <div class="value expense" id="monthExpense">₺0</div>
+          </div>
+          <div class="card summary-card">
+            <div class="label">Kalan Bakiye</div>
+            <div class="value balance" id="monthBalance">₺0</div>
+          </div>
+          <div class="card summary-card">
+            <div class="label">Bugünkü Harcama</div>
+            <div class="value today" id="todayExpense">₺0</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn" onclick="go('add')">+ Harcama / Gelir</button>
+          <button class="btn secondary" onclick="go('notes')">+ Not / Plan</button>
+        </div>
+
+        <div class="card">
+          <div class="panel-title">
+            <h2>Son Kayıtlar</h2>
+            <span class="small" id="recordCount">0 kayıt</span>
+          </div>
+          <div class="list" id="recentList"></div>
+        </div>
+      </section>
+
+      <section id="add" class="screen">
+        <div class="card">
+          <div class="panel-title">
+            <h2>Gelir / Gider Ekle</h2>
+            <span class="small">Hızlı giriş</span>
+          </div>
+          <form class="form" onsubmit="saveTransaction(event)">
+            <div class="field">
+              <label>İşlem Tipi</label>
+              <select id="txType">
+                <option value="expense">Gider</option>
+                <option value="income">Gelir</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tutar</label>
+              <input id="txAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Örn: 250" required />
+            </div>
+            <div class="field">
+              <label>Kategori</label>
+              <select id="txCategory">
+                <option>Yemek</option>
+                <option>Yakıt</option>
+                <option>Ulaşım</option>
+                <option>Ev</option>
+                <option>İş</option>
+                <option>Fatura</option>
+                <option>Kişisel</option>
+                <option>Diğer</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Ödeme Şekli</label>
+              <select id="txPayment">
+                <option>Nakit</option>
+                <option>Kredi Kartı</option>
+                <option>Banka Kartı</option>
+                <option>Havale / EFT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tarih</label>
+              <input id="txDate" type="date" required />
+            </div>
+            <div class="field">
+              <label>Açıklama</label>
+              <input id="txDesc" type="text" placeholder="Örn: Öğle yemeği" />
+            </div>
+            <button class="btn" type="submit">Kaydet</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="records" class="screen">
+        <div class="card">
+          <div class="panel-title">
+            <h2>Kayıtlar</h2>
+            <button class="btn secondary" style="padding:9px 12px" onclick="exportCSV()">CSV</button>
+          </div>
+          <div class="field">
+            <label>Filtre</label>
+            <select id="recordFilter" onchange="render()">
+              <option value="all">Tümü</option>
+              <option value="income">Sadece Gelir</option>
+              <option value="expense">Sadece Gider</option>
+            </select>
+          </div>
+          <div class="list" id="allRecords"></div>
+        </div>
+      </section>
+
+      <section id="notes" class="screen">
+        <div class="card">
+          <div class="panel-title">
+            <h2>Not / Plan Ekle</h2>
+            <span class="small">Günlük ajanda</span>
+          </div>
+          <form class="form" onsubmit="saveNote(event)">
+            <div class="field">
+              <label>Tür</label>
+              <select id="noteType">
+                <option value="note">Not</option>
+                <option value="todo">Yapılacak İş</option>
+                <option value="plan">Plan</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Başlık</label>
+              <input id="noteTitle" type="text" placeholder="Örn: Müşteri araması" required />
+            </div>
+            <div class="field">
+              <label>Detay</label>
+              <textarea id="noteText" placeholder="Kısa açıklama yaz..."></textarea>
+            </div>
+            <div class="field">
+              <label>Tarih</label>
+              <input id="noteDate" type="date" required />
+            </div>
+            <button class="btn" type="submit">Notu Kaydet</button>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="panel-title">
+            <h2>Notlarım</h2>
+            <span class="small" id="noteCount">0 not</span>
+          </div>
+          <div class="list" id="noteList"></div>
+        </div>
+      </section>
+
+      <section id="reports" class="screen">
+        <div class="card">
+          <div class="panel-title">
+            <h2>Rapor</h2>
+            <span class="small">Aylık özet</span>
+          </div>
+          <div class="list" id="categoryReport"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-screen="home" onclick="go('home')"><span>🏠</span>Ana</button>
+    <button class="tab" data-screen="add" onclick="go('add')"><span>➕</span>Ekle</button>
+    <button class="tab" data-screen="records" onclick="go('records')"><span>📒</span>Kayıt</button>
+    <button class="tab" data-screen="notes" onclick="go('notes')"><span>📝</span>Not</button>
+    <button class="tab" data-screen="reports" onclick="go('reports')"><span>📊</span>Rapor</button>
+  </nav>
+
+  <div id="sideMenu" class="side-menu" onclick="toggleMenu(false)">
+    <div class="drawer" onclick="event.stopPropagation()">
+      <h3>Menü</h3>
+      <button class="btn secondary" onclick="go('home'); toggleMenu(false)">🏠 Ana Sayfa</button>
+      <button class="btn secondary" onclick="go('add'); toggleMenu(false)">➕ Gelir / Gider Ekle</button>
+      <button class="btn secondary" onclick="go('notes'); toggleMenu(false)">📝 Not / Plan Ekle</button>
+      <button class="btn secondary" onclick="go('records'); toggleMenu(false)">📒 Tüm Kayıtlar</button>
+      <button class="btn secondary" onclick="go('reports'); toggleMenu(false)">📊 Raporlar</button>
+      <button class="btn secondary" onclick="exportJSON()">⬇️ Yedek Al</button>
+      <button class="btn danger" onclick="clearData()">🗑️ Tüm Verileri Sil</button>
+      <p class="small">Veriler bu prototipte sadece bu cihazın tarayıcı hafızasında saklanır.</p>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "cep-ajanda-v1";
+    const fmt = new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 });
+
+    const state = loadState();
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return { transactions: [], notes: [] };
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return { transactions: [], notes: [] };
+      }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function initDates() {
+      document.getElementById("txDate").value = todayISO();
+      document.getElementById("noteDate").value = todayISO();
+      document.getElementById("todayText").textContent = new Date().toLocaleDateString("tr-TR", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+    }
+
+    function go(screenId) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(screenId).classList.add("active");
+      document.querySelectorAll(".tab").forEach(t => {
+        t.classList.toggle("active", t.dataset.screen === screenId);
+      });
+      render();
+    }
+
+    function toggleMenu(open) {
+      document.getElementById("sideMenu").classList.toggle("open", open);
+    }
+
+    function saveTransaction(event) {
+      event.preventDefault();
+      const amount = Number(document.getElementById("txAmount").value || 0);
+      if (amount <= 0) return alert("Lütfen geçerli bir tutar girin.");
+
+      state.transactions.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        type: document.getElementById("txType").value,
+        amount,
+        category: document.getElementById("txCategory").value,
+        payment: document.getElementById("txPayment").value,
+        date: document.getElementById("txDate").value,
+        desc: document.getElementById("txDesc").value.trim(),
+        createdAt: new Date().toISOString()
+      });
+
+      document.getElementById("txAmount").value = "";
+      document.getElementById("txDesc").value = "";
+      document.getElementById("txDate").value = todayISO();
+      persist();
+      render();
+      go("home");
+    }
+
+    function saveNote(event) {
+      event.preventDefault();
+      state.notes.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        type: document.getElementById("noteType").value,
+        title: document.getElementById("noteTitle").value.trim(),
+        text: document.getElementById("noteText").value.trim(),
+        date: document.getElementById("noteDate").value,
+        done: false,
+        createdAt: new Date().toISOString()
+      });
+
+      document.getElementById("noteTitle").value = "";
+      document.getElementById("noteText").value = "";
+      document.getElementById("noteDate").value = todayISO();
+      persist();
+      render();
+    }
+
+    function deleteTransaction(id) {
+      const idx = state.transactions.findIndex(x => x.id === id);
+      if (idx >= 0) state.transactions.splice(idx, 1);
+      persist();
+      render();
+    }
+
+    function deleteNote(id) {
+      const idx = state.notes.findIndex(x => x.id === id);
+      if (idx >= 0) state.notes.splice(idx, 1);
+      persist();
+      render();
+    }
+
+    function toggleNote(id) {
+      const note = state.notes.find(x => x.id === id);
+      if (note) note.done = !note.done;
+      persist();
+      render();
+    }
+
+    function render() {
+      const now = new Date();
+      const ym = now.toISOString().slice(0, 7);
+      const today = todayISO();
+
+      const monthTx = state.transactions.filter(x => x.date && x.date.startsWith(ym));
+      const income = sum(monthTx.filter(x => x.type === "income"));
+      const expense = sum(monthTx.filter(x => x.type === "expense"));
+      const todayExpense = sum(state.transactions.filter(x => x.type === "expense" && x.date === today));
+
+      document.getElementById("monthIncome").textContent = fmt.format(income);
+      document.getElementById("monthExpense").textContent = fmt.format(expense);
+      document.getElementById("monthBalance").textContent = fmt.format(income - expense);
+      document.getElementById("todayExpense").textContent = fmt.format(todayExpense);
+      document.getElementById("recordCount").textContent = `${state.transactions.length} kayıt`;
+      document.getElementById("noteCount").textContent = `${state.notes.length} not`;
+
+      renderTransactionList("recentList", state.transactions.slice(0, 6));
+
+      const filter = document.getElementById("recordFilter")?.value || "all";
+      const filtered = filter === "all" ? state.transactions : state.transactions.filter(x => x.type === filter);
+      renderTransactionList("allRecords", filtered);
+      renderNotes();
+      renderCategoryReport(monthTx);
+    }
+
+    function sum(items) {
+      return items.reduce((acc, x) => acc + Number(x.amount || 0), 0);
+    }
+
+    function renderTransactionList(containerId, items) {
+      const el = document.getElementById(containerId);
+      if (!items.length) {
+        el.innerHTML = `<div class="empty">Henüz kayıt yok.</div>`;
+        return;
+      }
+
+      el.innerHTML = items.map(x => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <div class="item-title">${escapeHTML(x.desc || x.category)}</div>
+              <div class="item-meta">${dateTR(x.date)} · ${escapeHTML(x.category)} · ${escapeHTML(x.payment)}</div>
+            </div>
+            <div class="${x.type === "income" ? "amount-income" : "amount-expense"}">
+              ${x.type === "income" ? "+" : "-"}${fmt.format(x.amount)}
+            </div>
+          </div>
+          <button class="btn danger" style="padding:8px 10px" onclick="deleteTransaction('${x.id}')">Sil</button>
+        </div>
+      `).join("");
+    }
+
+    function renderNotes() {
+      const el = document.getElementById("noteList");
+      if (!state.notes.length) {
+        el.innerHTML = `<div class="empty">Henüz not veya plan yok.</div>`;
+        return;
+      }
+
+      el.innerHTML = state.notes.map(n => `
+        <div class="item" style="opacity:${n.done ? 0.55 : 1}">
+          <div class="item-row">
+            <div>
+              <div class="item-title">${n.done ? "✅ " : ""}${escapeHTML(n.title)}</div>
+              <div class="item-meta">${dateTR(n.date)} · ${typeTR(n.type)}</div>
+            </div>
+            <span class="chip">${typeIcon(n.type)} ${typeTR(n.type)}</span>
+          </div>
+          ${n.text ? `<div class="small">${escapeHTML(n.text)}</div>` : ""}
+          <div class="quick-actions" style="margin:0; grid-template-columns:1fr 1fr">
+            <button class="btn secondary" style="padding:8px 10px" onclick="toggleNote('${n.id}')">${n.done ? "Geri Al" : "Tamamlandı"}</button>
+            <button class="btn danger" style="padding:8px 10px" onclick="deleteNote('${n.id}')">Sil</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderCategoryReport(monthTx) {
+      const el = document.getElementById("categoryReport");
+      const expenses = monthTx.filter(x => x.type === "expense");
+      if (!expenses.length) {
+        el.innerHTML = `<div class="empty">Bu ay gider kaydı yok.</div>`;
+        return;
+      }
+
+      const map = {};
+      expenses.forEach(x => map[x.category] = (map[x.category] || 0) + Number(x.amount || 0));
+      const rows = Object.entries(map).sort((a,b) => b[1] - a[1]);
+      const total = rows.reduce((a, [,v]) => a + v, 0);
+
+      el.innerHTML = rows.map(([cat, val]) => {
+        const pct = total ? Math.round((val / total) * 100) : 0;
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <div class="item-title">${escapeHTML(cat)}</div>
+                <div class="item-meta">Bu ay gider oranı: %${pct}</div>
+              </div>
+              <div class="amount-expense">${fmt.format(val)}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function typeTR(type) {
+      return { note: "Not", todo: "Yapılacak", plan: "Plan" }[type] || "Not";
+    }
+
+    function typeIcon(type) {
+      return { note: "📝", todo: "✅", plan: "📌" }[type] || "📝";
+    }
+
+    function dateTR(date) {
+      if (!date) return "Tarihsiz";
+      return new Date(date + "T12:00:00").toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    function escapeHTML(text) {
+      return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      downloadBlob(blob, `cep-ajanda-yedek-${todayISO()}.json`);
+    }
+
+    function exportCSV() {
+      const header = ["Tarih", "Tip", "Kategori", "Odeme", "Tutar", "Aciklama"];
+      const rows = state.transactions.map(x => [x.date, x.type, x.category, x.payment, x.amount, x.desc || ""]);
+      const csv = [header, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replaceAll('"', '""')}"`).join(";"))
+        .join("\n");
+      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+      downloadBlob(blob, `cep-ajanda-kayitlar-${todayISO()}.csv`);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearData() {
+      if (!confirm("Tüm gelir, gider, not ve plan kayıtları silinsin mi?")) return;
+      state.transactions = [];
+      state.notes = [];
+      persist();
+      toggleMenu(false);
+      render();
+      go("home");
+    }
+
+    initDates();
+    render();
+  </script>
+</body>
+</html>
