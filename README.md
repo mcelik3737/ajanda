@@ -1,2 +1,0 @@
-# ajanda
-iphone_app
